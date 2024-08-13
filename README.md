@@ -36,8 +36,8 @@
     from twitter_video_scraper import TwitterVideoScraperLogin
     
     # set your username and password
-    your_username = 'your twitter username'
-    your_password = 'your twitter password'
+    username = 'your twitter username'
+    password = 'your twitter password'
     
     cookies_path = 'tw_cookies'
 
