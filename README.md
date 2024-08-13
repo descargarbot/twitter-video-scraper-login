@@ -42,7 +42,7 @@
     cookies_path = 'tw_cookies'
 
     # set x/tw video url
-    x_url_post = "https://twitter.com/BoobsRating/status/1779593214489657496"
+    x_url_post = "your twitter video url"
 
     # create scraper video object
     tw_video = TwitterVideoScraperLogin()
