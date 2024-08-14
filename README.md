@@ -33,7 +33,7 @@
 <h2>use case example</h2>
 
     #import the class TwitterVideoScraperLogin
-    from twitter_video_scraper import TwitterVideoScraperLogin
+    from twitter_video_scraper_with_login import TwitterVideoScraperLogin
     
     # set your username and password
     username = 'your twitter username'
