@@ -447,14 +447,25 @@ if __name__ == "__main__":
 
     # use case example
 
-    # set your username and password
-    username = 'your twitter username'
-    password = 'your twitter password'
-    
-    cookies_path = 'tw_cookies'
+    # set your x/twitter username and password,
+    # if your tw_cookies already exist, username and password will be ignored
+    # if you want perform a new login, delete tw_cookies file
+    username = ''
+    password = ''
 
     # set x/tw video url
-    x_url_post = "your twitter video url"
+    x_url_post = ''
+
+    if username == '' and password == '' and x_url_post == '':
+        args = sys.argv[1:]
+        if '--username' != args[0] or '--password' != args[2]:
+            print("error. try:\npython3 twitter_video_scraper_with_login.py --username your_username --password your_password TWITTER_URL")
+            exit()
+        username = args[1]
+        password = args[3]
+        x_url_post = args[4]
+
+    cookies_path = 'tw_cookies'
 
     # create scraper video object
     tw_video = TwitterVideoScraperLogin()
