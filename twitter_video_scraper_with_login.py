@@ -3,13 +3,16 @@ import json
 import re
 import random
 import urllib.parse
-import pickle
+#import pickle
 import os
 import sys
+from http.cookiejar import MozillaCookieJar
 
 ##################################################################
 # data to start a login request
 ##################################################################
+# deprecate since x.com request a captcha
+'''
 json_onboarding_login = {
             'input_flow_data': {
                 'flow_context': {
@@ -63,7 +66,7 @@ json_onboarding_login = {
                 'web_modal': 1,
             }
         }
-
+'''
 ##################################################################
 # variables and features to send a post details request with login
 ##################################################################
@@ -111,9 +114,9 @@ class TwitterVideoScraperLogin:
             'accept-language': 'en',
             'authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
             'cache-control': 'no-cache',
-            'origin': 'https://twitter.com',
+            'origin': 'https://x.com',
             'pragma': 'no-cache',
-            'referer': 'https://twitter.com/',
+            'referer': 'https://x.com/',
             'sec-ch-ua': '"Chromium";v="116", "Google Chrome";v="116"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"Windows"',
@@ -153,20 +156,38 @@ class TwitterVideoScraperLogin:
             raise SystemExit('error getting rest id')
 
 
+    def load_cookies_from_file(self, path_to_cookies: str) -> None:
+        """Load the cookies from Netscape format txt file."""
+
+        try:
+            cookie_jar = MozillaCookieJar(path_to_cookies)
+            cookie_jar.load(ignore_discard=True, ignore_expires=True)
+            self.tw_session.cookies.update(cookie_jar)
+        except FileNotFoundError as e:
+            print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
+            raise SystemExit('Cookies file not found')
+        except Exception as e:
+            print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
+            raise SystemExit('Exception loading the cookies.')
+
+    # deprecate since x.com request a captcha
+    '''
     def get_guest_token(self) -> None:
         """ this method get the guest token, and set it in cookies session """
 
-        guest_token_endpoint = 'https://api.twitter.com/1.1/guest/activate.json'
+        guest_token_endpoint = 'https://api.x.com/1.1/guest/activate.json'
         try:
             guest_token = self.tw_session.post(guest_token_endpoint, headers=self.headers, proxies=self.proxies).json()["guest_token"]
             
-            self.tw_session.cookies.set('gt', guest_token, domain='.twitter.com')
+            self.tw_session.cookies.set('gt', guest_token, domain='.x.com')
 
         except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
             raise SystemExit('error getting guest token')
+    '''
 
-
+    # deprecate since x.com request a captcha
+    '''
     def tw_login(self, username: str, password: str, cookies_path: str) -> None:
         """ this method perform the login in x/tw (get ct0 and auth_token cookies),
             this is mostly used for nsfw content, 
@@ -190,7 +211,7 @@ class TwitterVideoScraperLogin:
             flow_token_1 = self.tw_session.post(f'{onboarding_task_endpoint}?flow_name=login', 
                                                 headers=self.headers, 
                                                 proxies=self.proxies, json=json_onboarding_login).json()['flow_token']
-        except:
+        except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
             raise SystemExit('error getting flow token 1')
 
@@ -207,7 +228,7 @@ class TwitterVideoScraperLogin:
                         },
                     ]
                 }).json()['flow_token']
-        except:
+        except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
             raise SystemExit('error getting flow token 2')
 
@@ -233,7 +254,7 @@ class TwitterVideoScraperLogin:
                         },
                     ]
                 }).json()['flow_token']
-        except:
+        except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
             raise SystemExit('error getting flow token 3')   
 
@@ -250,7 +271,7 @@ class TwitterVideoScraperLogin:
                         },
                     ]
                 }).json()['flow_token']
-        except:
+        except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
             raise SystemExit('error getting flow token 4')
 
@@ -266,8 +287,9 @@ class TwitterVideoScraperLogin:
                             }
                         },
                     ]
-                }).json()['flow_token']
-        except:
+                }).json()
+            
+        except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
             raise SystemExit('error getting flow token 5')
 
@@ -277,7 +299,7 @@ class TwitterVideoScraperLogin:
                     'flow_token': flow_token_5,
                     'subtask_inputs': [],
                 })
-        except:
+        except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
             raise SystemExit('error getting flow token 6')
 
@@ -295,12 +317,14 @@ class TwitterVideoScraperLogin:
             return True
 
         return False
+    '''
 
-
+    # deprecate since x.com request a captcha
+    '''
     def tw_logout(self) -> None:
         """ this method perform the logout in x/tw """
 
-        logout_endpoint = 'https://api.twitter.com/1.1/account/logout.json'
+        logout_endpoint = 'https://api.x.com/1.1/account/logout.json'
 
         self.headers['x-twitter-auth-type'] = 'OAuth2Session'
         self.headers['content-type'] = 'application/x-www-form-urlencoded'
@@ -309,8 +333,8 @@ class TwitterVideoScraperLogin:
             logout_api_response = self.tw_session.post(logout_endpoint, 
                                                 headers=self.headers,
                                                 proxies=self.proxies,
-                                                data={'redirectAfterLogout': 'https://twitter.com/account/switch',})
-        except:
+                                                data={'redirectAfterLogout': 'https://x.com/account/switch',})
+        except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
             raise SystemExit('error in logout')
 
@@ -321,7 +345,7 @@ class TwitterVideoScraperLogin:
 
         if logout_status != 'ok':
             raise SystemExit('error in logout')
-
+    '''
 
     def get_video_url_by_id_graphql(self, rest_id: str) -> tuple:
         """ this method get post details and extract video/s url 
@@ -330,7 +354,7 @@ class TwitterVideoScraperLogin:
         self.headers['x-csrf-token'] = self.tw_session.cookies.get('ct0')
         self.headers['x-twitter-auth-type'] = 'OAuth2Session'
 
-        tw_post_endpoint = 'https://twitter.com/i/api/graphql/zZXycP0V6H7m-2r0mOnFcA/TweetDetail'
+        tw_post_endpoint = 'https://x.com/i/api/graphql/zZXycP0V6H7m-2r0mOnFcA/TweetDetail'
         
         variables_tw_post_with_login['focalTweetId'] = rest_id
 
@@ -345,9 +369,10 @@ class TwitterVideoScraperLogin:
 
         # videos, but u have all tweet data in post_details
         try:
-            all_media = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['entities']['media']
+
+            all_media = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['entities']['media']
             
-            nsfw = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['possibly_sensitive']
+            nsfw = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['possibly_sensitive']
         
         except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
@@ -426,30 +451,6 @@ class TwitterVideoScraperLogin:
         return fixed_video_list
 
 
-    def get_video_filesize(self, video_url_list: list) -> list:
-        """ Get file size by requesting a small portion of the file """
-
-        items_filesize = []
-        for video_url in video_url_list:
-            try:
-                headers = self.headers.copy()
-                headers.update({"Range": "bytes=0-1023"})
-                video_size = self.tw_session.get(video_url, headers=headers, proxies=self.proxies)
-                content_range = video_size.headers.get('Content-Range')
-                if content_range:
-                    total_size = int(content_range.split('/')[-1])
-                    items_filesize.append(total_size / 1024 / 1024)
-                    print(items_filesize)
-                else:
-                    print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
-                    raise SystemExit("Error Content-Range header missing")
-            except Exception as e:
-                print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
-                raise SystemExit('Error getting video size')
-        
-        return items_filesize
-
-    '''
     def get_video_filesize(self, video_url_list: list) -> str:
         """ get file size of requested video """
 
@@ -463,7 +464,7 @@ class TwitterVideoScraperLogin:
                 raise SystemExit('error getting video file size')
 
         return items_filesize
-    '''
+
 
 ##################################################################
 
@@ -471,45 +472,41 @@ if __name__ == "__main__":
 
     # use case example
 
-    # set your x/twitter username and password,
-    # if your tw_cookies already exist, username and password will be ignored
-    # if you want perform a new login, delete tw_cookies file
-    username = ''
-    password = ''
-
     # set x/tw video url
     x_url_post = ''
 
-    if username == '' and password == '' and x_url_post == '':
+    if x_url_post == '':
         args = sys.argv[1:]
-        if '--username' != args[0] or '--password' != args[2]:
-            print("error. try:\npython3 twitter_video_scraper_with_login.py --username your_username --password your_password TWITTER_URL")
+        if '--cookies' != args[0]:
+            print("error. try:\npython3 twitter_video_scraper_with_login.py --cookies PATH_TO_COOKIES_FILE TWITTER_URL")
             exit()
-        username = args[1]
-        password = args[3]
-        x_url_post = args[4]
-
-    cookies_path = 'tw_cookies'
+        cookies_path = args[1]
+        x_url_post = args[2]
+    else:
+        cookies_path = 'tw_cookies.txt'
 
     # create scraper video object
     tw_video = TwitterVideoScraperLogin()
 
     # set the proxy (optional, u can run it with ur own ip),
-    #tw_video.set_proxies('162.223.94.166:80', '162.223.94.166:80')
+    #tw_video.set_proxies('', '')
 
     # get post id from url
     restid = tw_video.get_restid_from_tw_url(x_url_post)
 
     # get guest token, set it in cookies
-    tw_video.get_guest_token()
+    #tw_video.get_guest_token()
 
-    # perform login
-    tw_video.tw_login(username, password, cookies_path)
+    # perform login(deprecate)
+    #tw_video.tw_login(username, password, cookies_path)
+
+
+    tw_video.load_cookies_from_file(cookies_path)
 
     # get video url and thumbnails from video id
     video_url_list, video_thumbnails, video_nsfw = tw_video.get_video_url_by_id_graphql(restid)
 
-    # perform logout, if u use this method u should delete tw_cookies
+    # perform logout (deprecate)
     #tw_video.tw_logout()
 
     # get the videos filesize
