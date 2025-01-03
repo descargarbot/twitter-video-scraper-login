@@ -1,4 +1,4 @@
-# x / twitter video scraper with login
+# x / twitter video scraper with cookies
 <div align="center">
   
 ![DescargarBot](https://www.descargarbot.com/v/download-github_twitter.png)
@@ -30,39 +30,43 @@
   </ul>
 <br>
 </ul>
+<br>
+  
+  > [!NOTE]\
+  >  To get the cookies file you can use <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc" > this</a> browser extension
+  <br><br>
+
 <h2>use case example</h2>
 
     #import the class TwitterVideoScraperLogin
     from twitter_video_scraper_with_login import TwitterVideoScraperLogin
     
-    # set your username and password
-    username = 'your twitter username'
-    password = 'your twitter password'
-    
-    cookies_path = 'tw_cookies'
-
     # set x/tw video url
-    x_url_post = "your twitter video url"
+    x_url_post = 'your x/twitter video url'
+
+    cookies_path = 'tw_cookies.txt'
 
     # create scraper video object
     tw_video = TwitterVideoScraperLogin()
 
     # set the proxy (optional, u can run it with ur own ip),
-    #tw_video.set_proxies('162.223.94.166:80', '162.223.94.166:80')
+    #tw_video.set_proxies('', '')
 
     # get post id from url
     restid = tw_video.get_restid_from_tw_url(x_url_post)
 
-    # get guest token, set it in cookies
-    tw_video.get_guest_token()
+    # get guest token, set it in cookies(deprecate)
+    #tw_video.get_guest_token()
 
-    # perform login
-    tw_video.tw_login(username, password, cookies_path)
+    # perform login(deprecate)
+    #tw_video.tw_login(username, password, cookies_path)
+
+    tw_video.load_cookies_from_file(cookies_path)
 
     # get video url and thumbnails from video id
     video_url_list, video_thumbnails, video_nsfw = tw_video.get_video_url_by_id_graphql(restid)
 
-    # perform logout, if u use this method u should delete tw_cookies
+    # perform logout (deprecate)
     #tw_video.tw_logout()
 
     # get the videos filesize
@@ -77,11 +81,12 @@
     fixed_video_list = tw_video.ffmpeg_fix(downloaded_video_list)
 
     tw_video.tw_session.close()
+
     
   > [!NOTE]\
   >  you can use the CLI
   <br><br>
-  > <code>python3 twitter_video_scraper_with_login.py --username your_username --password your_password TWITTER_URL</code>
+  > <code>python3 twitter_video_scraper_with_login.py --cookies PATH_TO_COOKIES_FILE TWITTER_URL</code>
 <br><br>
 
 > [!WARNING]\
