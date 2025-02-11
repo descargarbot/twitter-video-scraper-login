@@ -405,7 +405,8 @@ class TwitterVideoScraperLogin:
         for video_url in video_url_list:
             try:
                 video = self.tw_session.get(video_url, headers=self.headers, proxies=self.proxies, stream=True)
-
+                if video.status_code != 200:
+                        raise SystemExit('error downloading != 200') # probably georestricted or video removed   
             except Exception as e:
                 print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
                 raise SystemExit('error downloading video')
