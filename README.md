@@ -10,7 +10,6 @@
 <h2>dependencies</h2>
 <code>Python 3.9+</code>
 <code>requests</code>
-<code>FFmpeg</code>
 <br>
 <br>
 <h2>install dependencies</h2>
@@ -19,15 +18,6 @@
   <code>pip install requests</code><br>
   <code>pip install -U 'requests[socks]'</code>
   <br>
-<li> <h3>FFmpeg </h3></li>
-  <ul>
-  <li> <h3> Linux </h3> </li>
-  <code> sudo apt install ffmpeg </code>
-  <li> <h3>MacOS</h3> </li>
-    you can use this <a href="https://bbc.github.io/bbcat-orchestration-docs/installation-mac-manual/" > tutorial</a>
-  <li> <h3>Windows</h3> </li>
-    you can use this <a href="https://www.wikihow.com/Install-FFmpeg-on-Windows" > tutorial</a>
-  </ul>
 <br>
 </ul>
 <br>
@@ -71,14 +61,10 @@
 
     # get the videos filesize
     #items_filesize = tw_video.get_video_filesize(video_url_list)
-    #[print('filesize: ~' + filesize + ' bytes') for filesize in items_filesize]
+    #[print('filesize: ~' + str(filesize) + ' bytes') for filesize in items_filesize]
 
     # download video by url
     downloaded_video_list = tw_video.download(video_url_list)
-
-    # fix video to make it shareable (optional, but e.g android reject the default format)
-    # remember install ffmpeg if u dont have it
-    fixed_video_list = tw_video.ffmpeg_fix(downloaded_video_list)
 
     tw_video.tw_session.close()
 
