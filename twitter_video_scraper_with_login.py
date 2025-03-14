@@ -6,6 +6,7 @@ import urllib.parse
 #import pickle
 import os
 import sys
+from typing import Optional
 from http.cookiejar import MozillaCookieJar
 
 ##################################################################
@@ -412,6 +413,7 @@ class TwitterVideoScraperLogin:
                 raise SystemExit('error downloading video')
 
             path_filename = video_url.split('?')[0].split('/')[-1]
+            path_filename = f'DescargarBot_{path_filename}'
             try:
                 with open(path_filename, 'wb') as f:
                     for chunk in video.iter_content(chunk_size=1024):
@@ -426,9 +428,10 @@ class TwitterVideoScraperLogin:
 
         return downloaded_video_list
 
-
+    """
+    # not used for now. x/tw is delivering the video with the correct format
+    
     def ffmpeg_fix(self, downloaded_video_list: list) -> list:
-        """ fix video to make it shareable """
 
         fixed_video_list = []
         for video in downloaded_video_list:
@@ -450,22 +453,44 @@ class TwitterVideoScraperLogin:
                 raise SystemExit('error with ffmpeg')
 
         return fixed_video_list
+    """
 
-
-    def get_video_filesize(self, video_url_list: list) -> str:
+    def get_video_filesize(self, video_url_list: list) -> list:
         """ get file size of requested video """
 
         items_filesize = []
         for video_url in video_url_list:
-            try:
-                video_size = self.tw_session.head(video_url, headers=self.headers, proxies=self.proxies)
-                items_filesize.append(video_size.headers['content-length'])
-            except Exception as e:
-                print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
-                raise SystemExit('error getting video file size')
+            video_size = self.get_content_length(video_url)
+
+            if video_size == None:
+                raise SystemExit('error getting video size')
+
+            items_filesize.append(video_size/1024/1024)
 
         return items_filesize
-
+    
+    def get_content_length(self, url: str) -> Optional[int]:
+        headers = {'user-agent': 'Twitterbot/1.0'}
+        
+        for attempt in range(50):
+            try:
+                resp_head = requests.head(url, headers=headers, allow_redirects=True)
+                if 'content-length' in resp_head.headers:
+                    return int(resp_head.headers['content-length'])
+                
+                with requests.get(url, headers={**headers, 'Range': 'bytes=0-0'}, stream=True) as resp_get:
+                    if 'Content-Length' in resp_get.headers:
+                        return int(resp_get.headers['Content-Length'])
+                    
+                    resp_full = requests.get(url, headers=headers, stream=True)
+                    resp_full.close()
+                    return int(resp_full.headers.get('Content-Length', 0))
+                    
+            except (requests.RequestException, KeyError, ValueError) as e:
+                print(f"retrie {attempt + 1} fail: {str(e)}")
+                time.sleep(1)
+        
+        return None
 
 ##################################################################
 
@@ -511,14 +536,14 @@ if __name__ == "__main__":
     #tw_video.tw_logout()
 
     # get the videos filesize
-    #items_filesize = tw_video.get_video_filesize(video_url_list)
-    #[print('filesize: ~' + filesize + ' bytes') for filesize in items_filesize]
+    items_filesize = tw_video.get_video_filesize(video_url_list)
+    [print('filesize: ~' + str(filesize) + ' bytes') for filesize in items_filesize]
 
     # download video by url
     downloaded_video_list = tw_video.download(video_url_list)
 
-    # fix video to make it shareable (optional, but e.g android reject the default format)
+    # not used for now. x/tw is delivering the video with the correct format
     # remember install ffmpeg if u dont have it
-    fixed_video_list = tw_video.ffmpeg_fix(downloaded_video_list)
+    # fixed_video_list = tw_video.ffmpeg_fix(downloaded_video_list)
 
     tw_video.tw_session.close()
