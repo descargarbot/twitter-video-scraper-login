@@ -371,9 +371,9 @@ class TwitterVideoScraperLogin:
         # videos, but u have all tweet data in post_details
         try:
 
-            all_media = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['entities']['media']
+            all_media = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['entities']['media']
             
-            nsfw = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['possibly_sensitive']
+            nsfw = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['possibly_sensitive']
         
         except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
