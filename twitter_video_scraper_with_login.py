@@ -6,7 +6,6 @@ import urllib.parse
 #import pickle
 import os
 import sys
-from typing import Optional
 from http.cookiejar import MozillaCookieJar
 
 ##################################################################
@@ -100,6 +99,17 @@ features_tw_post_with_login = {
                 'unified_cards_ad_metadata_container_dynamic_card_content_query_enabled': True,
                 'verified_phone_label_enabled': False,
                 'vibe_api_enabled': True,
+                'creator_subscriptions_tweet_preview_api_enabled': True, 
+                'view_counts_everywhere_api_enabled': True, 
+                'longform_notetweets_inline_media_enabled': True, 
+                'responsive_web_media_download_video_enabled': True, 
+                'responsive_web_graphql_skip_user_profile_image_extensions_enabled': True, 
+                'longform_notetweets_consumption_enabled': True, 
+                'freedom_of_speech_not_reach_fetch_enabled': True, 
+                'longform_notetweets_rich_text_read_enabled': True, 
+                'responsive_web_twitter_article_tweet_consumption_enabled': True, 
+                'tweet_awards_web_tipping_enabled': True, 
+                'responsive_web_graphql_exclude_directive_enabled': True
             }
 
 #####################################################################
@@ -355,9 +365,10 @@ class TwitterVideoScraperLogin:
         self.headers['x-csrf-token'] = self.tw_session.cookies.get('ct0')
         self.headers['x-twitter-auth-type'] = 'OAuth2Session'
 
-        tw_post_endpoint = 'https://x.com/i/api/graphql/zZXycP0V6H7m-2r0mOnFcA/TweetDetail'
-        
-        variables_tw_post_with_login['focalTweetId'] = rest_id
+        #tw_post_endpoint = 'https://x.com/i/api/graphql/zZXycP0V6H7m-2r0mOnFcA/TweetDetail' # dont work rn
+        tw_post_endpoint = 'https://x.com/i/api/graphql/2ICDjqPd81tulZcYrtpTuQ/TweetResultByRestId'
+
+        variables_tw_post_with_login['tweetId'] = rest_id
 
         graphql_url = f"{tw_post_endpoint}?variables={urllib.parse.quote(json.dumps(variables_tw_post_with_login))}&features={urllib.parse.quote(json.dumps(features_tw_post_with_login))}"
 
@@ -369,11 +380,12 @@ class TwitterVideoScraperLogin:
             raise SystemExit('error getting post details')   
 
         # videos, but u have all tweet data in post_details
+        #print(post_details)
         try:
 
-            all_media = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['entities']['media']
+            all_media = post_details['data']['tweetResult']['result']['tweet']['legacy']['entities']['media']
             
-            nsfw = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][0]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['possibly_sensitive']
+            nsfw = post_details['data']['tweetResult']['result']['tweet']['legacy']['possibly_sensitive']
         
         except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
@@ -406,14 +418,12 @@ class TwitterVideoScraperLogin:
         for video_url in video_url_list:
             try:
                 video = self.tw_session.get(video_url, headers=self.headers, proxies=self.proxies, stream=True)
-                if video.status_code != 200:
-                        raise SystemExit('error downloading != 200') # probably georestricted or video removed   
+
             except Exception as e:
                 print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
                 raise SystemExit('error downloading video')
 
             path_filename = video_url.split('?')[0].split('/')[-1]
-            path_filename = f'DescargarBot_{path_filename}'
             try:
                 with open(path_filename, 'wb') as f:
                     for chunk in video.iter_content(chunk_size=1024):
