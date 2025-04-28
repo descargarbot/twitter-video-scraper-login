@@ -7,6 +7,7 @@ import urllib.parse
 import os
 import sys
 from http.cookiejar import MozillaCookieJar
+from typing import Optional
 
 ##################################################################
 # data to start a login request
