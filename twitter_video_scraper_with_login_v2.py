@@ -546,16 +546,21 @@ class TwitterVideoScraperLogin:
             post_details = self.tw_session.get(tw_post_endpoint, params=params, headers=self.headers, timeout=10).json()
         except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
-            raise SystemExit('error getting post details')   
+            raise SystemExit('error getting post details')
 
         try:
             all_media = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][1]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['entities']['media']
-                        
             nsfw = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][1]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['possibly_sensitive']
         
         except Exception as e:
-            print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
-            raise SystemExit('error getting video details') 
+            try:
+                all_media = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][1]['entries'][0]['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['entities']['media']
+                nsfw = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][1]['entries'][0]['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['possibly_sensitive']
+        
+            except Exception as e:
+                print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
+                raise SystemExit('error getting video details') 
+
 
         video_variants_list = []
         video_thumbnails = []
