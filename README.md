@@ -10,6 +10,9 @@
 <h2>dependencies</h2>
 <code>Python 3.9+</code>
 <code>requests</code>
+<h3>for version 2, you also need</h3>
+<code>pycryptodome</code>
+<code>XClientTransaction</code>
 <br>
 <br>
 <h2>install dependencies</h2>
@@ -19,6 +22,14 @@
   <code>pip install -U 'requests[socks]'</code>
   <br>
 <br>
+</ul>
+<h3>for version 2</h3>
+<ul>
+<li><h3>pycryptodome</h3></li>
+  <code>pip install pycryptodome</code><br>
+<li><h3>XClientTransaction</h3></li>
+  <code>pip install XClientTransaction -U --no-cache-dir</code><br>
+  <br>
 </ul>
 <br>
   
