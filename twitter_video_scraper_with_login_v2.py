@@ -546,21 +546,46 @@ class TwitterVideoScraperLogin:
             post_details = self.tw_session.get(tw_post_endpoint, params=params, headers=self.headers, timeout=10).json()
         except Exception as e:
             print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
-            raise SystemExit('error getting post details')
+            raise SystemExit('error getting post details')   
+
+
+        # search for the correct tweet
+        video_tweet_entry = None
+        try:
+            for tweet in post_details['data']['threaded_conversation_with_injections_v2']['instructions'][1]['entries']:
+                if rest_id in tweet['entryId']:
+                    video_tweet_entry = tweet
+
+        except Exception as e:
+            print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
+            raise SystemExit('error searching the correct tweet')
 
         try:
-            all_media = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][1]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['entities']['media']
-            nsfw = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][1]['entries'][0]['content']['itemContent']['tweet_results']['result']['legacy']['possibly_sensitive']
+            # 1 posible json response
+            all_media = video_tweet_entry['content']['itemContent']['tweet_results']['result']['legacy']['entities']['media']
+            nsfw = video_tweet_entry['content']['itemContent']['tweet_results']['result']['legacy']['possibly_sensitive']
         
         except Exception as e:
             try:
-                all_media = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][1]['entries'][0]['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['entities']['media']
-                nsfw = post_details['data']['threaded_conversation_with_injections_v2']['instructions'][1]['entries'][0]['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['possibly_sensitive']
+                # other posible json response
+                all_media = video_tweet_entry['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['entities']['media']
+                nsfw = video_tweet_entry['content']['itemContent']['tweet_results']['result']['tweet']['legacy']['possibly_sensitive']
         
             except Exception as e:
-                print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
-                raise SystemExit('error getting video details') 
+                try:
+                    # cards posible json response
+                    all_media = video_tweet_entry['content']['itemContent']['tweet_results']['result']['tweet']['card']['legacy']['binding_values'][0]['value']['string_value']
+                    card_url, card_thumb = self.get_highest_bitrate_url_cards(all_media)
+                    
+                    nsfw = False
+                    if 'Adult Content' in video_tweet_entry['content']['itemContent']['tweet_results']['result']['mediaVisibilityResults']['blurred_image_interstitial']['text']['text']:
+                        nsfw = True
 
+                    return card_url, card_thumb, nsfw
+
+                except Exception as e:
+                    print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
+                    raise SystemExit('error getting video details') 
 
         video_variants_list = []
         video_thumbnails = []
@@ -580,6 +605,38 @@ class TwitterVideoScraperLogin:
             raise SystemExit('no video found')
 
         return videos_urls, video_thumbnails, nsfw
+
+    def get_highest_bitrate_url_cards(self, json_string: str):
+
+        try:
+            data = json.loads(json_string)
+           
+            media_entities = data.get('media_entities')
+            
+            if not media_entities:
+                raise SystemExit('no media_entities found')
+            
+            # search for the first one, can there be more than one in the cards?
+            media_entity = next(iter(media_entities.values()))
+            
+            if not media_entity or not media_entity.get('video_info') or not media_entity['video_info'].get('variants'):
+                raise SystemExit('no video_info found')
+            
+            video_variants = [
+                variant for variant in media_entity['video_info']['variants']
+                if variant.get('bitrate') and variant.get('content_type') == 'video/mp4'
+            ]
+            
+            if not video_variants:
+                raise SystemExit('no variants found')
+            
+            highest_bitrate_variant = max(video_variants, key=lambda x: x['bitrate'])
+            
+            return [highest_bitrate_variant['url']], [media_entity.get('media_url_https', '')]
+
+        except Exception as e:
+            print(e, "\nError on line {}".format(sys.exc_info()[-1].tb_lineno))
+            raise SystemExit('error parsing json card')   
 
 
     def download(self, video_url_list: list) -> list:
@@ -601,7 +658,7 @@ class TwitterVideoScraperLogin:
                     'sec-fetch-site': 'same-site',
                 }
         r_dl = requests.Session()
-        
+
         downloaded_video_list = []
         for video_url in video_url_list:
             try:
@@ -697,7 +754,7 @@ if __name__ == "__main__":
     # use case example
 
     # set x/tw video url
-    x_url_post = ''
+    x_url_post = 'https://x.com/leakscompany/status/1950349064047821169'
     if x_url_post == '':
         args = sys.argv[1:]
         if '--cookies' != args[0]:
