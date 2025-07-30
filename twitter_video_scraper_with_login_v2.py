@@ -754,7 +754,7 @@ if __name__ == "__main__":
     # use case example
 
     # set x/tw video url
-    x_url_post = 'https://x.com/leakscompany/status/1950349064047821169'
+    x_url_post = ''
     if x_url_post == '':
         args = sys.argv[1:]
         if '--cookies' != args[0]:
